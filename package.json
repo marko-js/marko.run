@@ -4,16 +4,20 @@
   "version": "1.0.0",
   "type": "module",
   "dependencies": {
-    "marko": "^5.31.0"
+    "marko": "^6.0.151"
   },
   "devDependencies": {
-    "@marko/run": "^0.2.0",
-    "@marko/run-adapter-static": "^0.1.5"
+    "@marko/run": "^0.9.6",
+    "@marko/run-adapter-static": "^2.0.4",
+    "@vitest/ui": "^4.0.18",
+    "vitest": "^4.0.18"
   },
   "private": true,
   "scripts": {
     "build": "marko-run build",
     "dev": "marko-run",
-    "preview": "marko-run preview"
+    "preview": "marko-run preview",
+    "test": "vitest run",
+    "test:watch": "vitest"
   }
 }
