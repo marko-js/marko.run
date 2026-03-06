@@ -7,7 +7,11 @@
  */
 
 declare const editor: string;
+declare const gutter: string;
+declare const editable: string;
 
 export {
-	editor
+	editor,
+	gutter,
+	editable
 };

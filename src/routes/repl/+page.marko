@@ -1,8 +1,9 @@
 import { parseFileTree, printFileTree, buildFileTree } from "./util/file-tree";
 import { buildRoutes, type RouteFile } from "./util/routes";
-import { buildColorMap, buildLineColors } from "./util/file-color";
+import { buildColorMap, buildLineColors, fileAtLine } from "./util/file-color";
 import * as toolbar from "./toolbar.style.module.scss";
 import { faFolderOpen, faPaintBrush } from "@fortawesome/free-solid-svg-icons";
+import { examples } from "./examples";
 
 hash-data/source=`foo/
   +page.marko
@@ -13,19 +14,33 @@ hash-data/source=`foo/
     +page.marko
     +layout.marko
 +layout.marko`
+
+let/highlightedFile=null as RouteFile | null
 let/fileTree=parseFileTree(source) valueChange(v) {
   source = printFileTree(v);
 }
-let/highlightedFile=null as RouteFile | null
 const/routes=buildRoutes(fileTree.dir)
 const/colors=buildColorMap(routes.files)
-const/lineColors=buildLineColors(colors, highlightedFile)
+const/lineColors=buildLineColors(colors, source, highlightedFile)
 
 split-panes
   @first
     div class=toolbar.toolbar
+      select/$example
+        ,class=toolbar.select
+        ,value=""
+        ,valueChange(value) {
+          const example = examples[+value];
+          if (example) {
+            source = example.source
+          }
+        }
+        option disabled selected -- Examples
+        for|example, i| of=examples
+          option value=i -- ${example.name}
       button
         ,title="Pretty print"
+        ,style="margin-left: auto"
         ,onClick() {
           fileTree = fileTree;
         }
@@ -50,7 +65,9 @@ split-panes
           );
           el.value = "";
         }
-    editor:=source lineColors=lineColors
+    editor:=source lineColors=lineColors onLineHover(line) {
+          highlightedFile = line >= 0 ? fileAtLine(colors, line) : null;
+        }
   @second
     results
       ,routes=routes.routes

@@ -8,8 +8,10 @@
 
 declare const toolbar: string;
 declare const icon: string;
+declare const select: string;
 
 export {
 	toolbar,
-	icon
+	icon,
+	select
 };
