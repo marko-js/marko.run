@@ -33,6 +33,8 @@ import { foldGutter, foldService } from "@codemirror/language";
 // import { styleToClass } from "./style-to-class";
 
 // const langConfig = new Compartment();
+const lineColorsConfig = new Compartment();
+
 export function update(view: EditorView, content: string) {
   // const curLang = (langConfig.get(view.state) as any)?.lang as
   //   | string
@@ -55,6 +57,42 @@ export function update(view: EditorView, content: string) {
   }
 }
 
+export function updateLineColors(
+  view: EditorView,
+  lineColors: Map<number, string>,
+) {
+  const decorations: { from: number; deco: Decoration }[] = [];
+  const doc = view.state.doc;
+
+  for (const [lineNum, color] of lineColors) {
+    // lineNum is 0-indexed from our Loc, CM doc lines are 1-indexed
+    const cmLine = lineNum + 1;
+    if (cmLine >= 1 && cmLine <= doc.lines) {
+      const line = doc.line(cmLine);
+      decorations.push({
+        from: line.from,
+        deco: Decoration.line({
+          attributes: {
+            style: `color: ${color};`,
+          },
+        }),
+      });
+    }
+  }
+
+  decorations.sort((a, b) => a.from - b.from);
+  const builder = new RangeSetBuilder<Decoration>();
+  for (const { from, deco } of decorations) {
+    builder.add(from, from, deco);
+  }
+
+  view.dispatch({
+    effects: lineColorsConfig.reconfigure(
+      EditorView.decorations.of(builder.finish()),
+    ),
+  });
+}
+
 const baseLanguageData = [
   {
     commentTokens: { line: "//" },
@@ -72,6 +110,7 @@ export default [
   EditorState.allowMultipleSelections.of(true),
   EditorState.languageData.of(() => baseLanguageData),
   // langConfig.of(shiki()),
+  lineColorsConfig.of([]),
   closeBrackets(),
   foldGutter({
     markerDOM(open) {

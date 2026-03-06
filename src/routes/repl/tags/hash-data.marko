@@ -3,7 +3,7 @@ export interface Input {
   value: string
 }
 
-let/value=input.value
+let/value=""
 lifecycle
   ,onMount() {
     decompress(window.location.hash.slice(1)).then((decompressed) => {

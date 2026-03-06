@@ -7,13 +7,15 @@ export interface Input {
   highlightedFileChange: (file: RouteFile | null) => void;
   content?: Marko.Body;
 }
-
 static function getFilePrefix(file: RouteFile) {
-  return (file.dirPath === "/" ? "" : file.dirPath.slice(1) + "/") + (file.match.path || "") + (file.match.type === file.match.name ? "+" : "@");
+  return (
+    (file.dirPath === "/" ? "" : file.dirPath.slice(1) + "/") +
+    (file.match.path || "") +
+    (file.match.type === file.match.name ? "+" : "@")
+  );
 }
-
 static function getFileSuffix(file: RouteFile) {
-  return (file.match.extra || "") + (file.match.ext);
+  return (file.match.extra || "") + file.match.ext;
 }
 
 const/{ file, colors, highlightedFile, content }=input
@@ -26,9 +28,17 @@ div
     highlightedFile = file;
   }
   ,onMouseOut(e) {
-    if (!(e.target as Element).contains(e.relatedTarget as Node)) {
+    const rel = e.relatedTarget as Element | null;
+    if (
+      rel &&
+      !rel.classList.contains(styles.box) &&
+      !(e.target as Element).contains(rel)
+    ) {
       highlightedFile = null;
     }
   }
-  div -- ${getFilePrefix(file)}<em>${file.match.name}</em>${getFileSuffix(file)}
+  div
+    -- ${getFilePrefix(file)}
+    em -- ${file.match.name}
+    -- ${getFileSuffix(file)}
   ${content}

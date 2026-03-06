@@ -7,7 +7,7 @@ import {
   parseFlatRoute,
   type PathSegment,
 } from "./flat-routes";
-import { createLoc, type ParseError } from "./parse";
+import { createLoc, type Loc, type ParseError } from "./parse";
 
 export interface BuildRoutesResult {
   routes: Route[],
@@ -38,6 +38,7 @@ export interface RouteFile {
   name: string;
   dirPath: string;
   filePath: string;
+  loc: Loc;
 }
 
 interface RouteExtra {
@@ -113,6 +114,7 @@ export function buildRoutes(root: FileTreeNode[]): BuildRoutesResult {
           name: entry.name,
           dirPath,
           filePath: joinPath(dirPath, entry.name),
+          loc: entry.loc,
         };
         let filePaths = paths;
 

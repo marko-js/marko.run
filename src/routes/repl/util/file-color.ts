@@ -8,3 +8,16 @@ export function buildColorMap(files: RouteFile[]) {
   }
   return map;
 }
+
+export function buildLineColors(
+  colors: Map<RouteFile, string>,
+  highlightedFile?: RouteFile | null,
+): Map<number, string> {
+  const lineColors = new Map<number, string>();
+  for (const [file, color] of colors) {
+    if (file.loc.line >= 0 && (!highlightedFile || file === highlightedFile)) {
+      lineColors.set(file.loc.line, color);
+    }
+  }
+  return lineColors;
+}

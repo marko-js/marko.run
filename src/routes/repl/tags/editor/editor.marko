@@ -1,9 +1,10 @@
 client import { EditorView } from "@codemirror/view";
-client import extensions, { update } from "app/util/codemirror";
+client import extensions, { update, updateLineColors } from "app/util/codemirror";
 import * as styles from "./editor.styles.module.scss";
 export interface Input {
   value: string;
   valueChange: (value: string) => void;
+  lineColors: Map<number, string>;
 }
 
 div.shiki/$editor id=styles.editor
@@ -29,6 +30,7 @@ lifecycle<{ editor?: EditorView; change?: boolean; set(v: string): void }>
         ...extensions,
       ],
     });
+    updateLineColors(this.editor, input.lineColors);
   }
   ,onUpdate() {
     if (this.change) {
@@ -36,6 +38,7 @@ lifecycle<{ editor?: EditorView; change?: boolean; set(v: string): void }>
     } else {
       update(this.editor!, input.value);
     }
+    updateLineColors(this.editor!, input.lineColors);
   }
   ,onDestroy() {
     this.editor!.destroy();

@@ -2,6 +2,7 @@ import path from "node:path";
 import { defineConfig } from "vite";
 import marko from "@marko/run/vite";
 import { patchCssModules } from "vite-css-modules";
+import analyze from "vite-bundle-analyzer";
 
 export default defineConfig({
   build: {
@@ -15,6 +16,7 @@ export default defineConfig({
       generateSourceTypes: true,
     }),
     marko(),
+    analyze()
   ],
   css: {
     modules: {

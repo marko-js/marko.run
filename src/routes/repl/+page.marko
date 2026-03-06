@@ -1,6 +1,8 @@
-import { parseFileTree, printFileTree } from "./util/file-tree";
+import { parseFileTree, printFileTree, buildFileTree } from "./util/file-tree";
 import { buildRoutes, type RouteFile } from "./util/routes";
-import { buildColorMap } from "./util/file-color";
+import { buildColorMap, buildLineColors } from "./util/file-color";
+import * as toolbar from "./toolbar.style.module.scss";
+import { faFolderOpen, faPaintBrush } from "@fortawesome/free-solid-svg-icons";
 
 hash-data/source=`foo/
   +page.marko
@@ -17,10 +19,38 @@ let/fileTree=parseFileTree(source) valueChange(v) {
 let/highlightedFile=null as RouteFile | null
 const/routes=buildRoutes(fileTree.dir)
 const/colors=buildColorMap(routes.files)
+const/lineColors=buildLineColors(colors, highlightedFile)
 
 split-panes
   @first
-    editor:=source
+    div class=toolbar.toolbar
+      button
+        ,title="Pretty print"
+        ,onClick() {
+          fileTree = fileTree;
+        }
+        fa-icon=faPaintBrush
+      button
+        ,title="Import routes directory"
+        ,onClick() {
+          $file().click();
+        }
+        fa-icon=faFolderOpen
+      input/$file
+        ,type="file"
+        ,...({ webkitdirectory: true } as Record<string, unknown>)
+        ,multiple
+        ,hidden
+        ,onChange() {
+          const el = $file();
+          fileTree = buildFileTree(
+            el.files
+              ? Array.from(el.files).map((file) => file.webkitRelativePath)
+              : [],
+          );
+          el.value = "";
+        }
+    editor:=source lineColors=lineColors
   @second
     results
       ,routes=routes.routes
