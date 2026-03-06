@@ -1,0 +1,19 @@
+client import { compress, decompress } from "app/util/hasher";
+export interface Input {
+  value: string
+}
+
+let/value=input.value
+lifecycle
+  ,onMount() {
+    decompress(window.location.hash.slice(1)).then((decompressed) => {
+      value = JSON.parse(decompressed) || input.value;
+    });
+  }
+  ,onUpdate() {
+    compress(JSON.stringify(value)).then((compressed) => {
+      window.location.hash = compressed;
+    });
+  }
+
+return:=value

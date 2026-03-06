@@ -1,0 +1,64 @@
+import { parseFileTree, buildFileTree, printFileTree } from "./util/file-tree";
+import { buildRoutes } from "./util/routes";
+static const defaultFileTree = `$name/
+  &foo+middleware.ts
+  +middleware.ts
+  +page.marko`;
+
+let/source=defaultFileTree
+let/fileTree=parseFileTree(source) valueChange(v) {
+  source = printFileTree(v);
+}
+
+main
+  section.input-pane
+    h2 -- Input
+    textarea value:=source rows=20 cols=100 placeholder=defaultFileTree
+    div
+      button
+        ,title="Pretty print"
+        ,onClick() {
+          fileTree = fileTree;
+        }
+        -- 🪄
+      button
+        ,title="Import routes"
+        ,onClick() {
+          $file().click();
+        }
+        -- 📥
+      input/$file
+        ,type="file"
+        ,webkitdirectory
+        ,multiple
+        ,hidden
+        ,onChange() {
+          const el = $file();
+          fileTree = buildFileTree(
+            el.files
+              ? Array.from(el.files).map((file) => file.webkitRelativePath)
+              : [],
+          );
+          el.value = "";
+        }
+
+    if=(fileTree.errors.length)
+      aside.errors
+        h3 -- Errors
+        ul
+          for|{ message, loc }| of=fileTree.errors
+            li -- ${message} at (${loc.line + 1}:${loc.column + 1})
+
+  section.output-pane
+    let/output="routes"
+    h2 -- Ouput
+    select value:=output
+      option value="files" -- Files
+      option value="routes" -- Routes
+
+    if=output === "files"
+      pre
+        code -- ${JSON.stringify(fileTree.dir, null, 2)}
+    else-if=output === "routes"
+      const/{ routes, errors }=buildRoutes(fileTree.dir)
+      routes-view routes=routes errors=errors

@@ -1,0 +1,119 @@
+.flow {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  gap: 0.75rem;
+}
+
+.flowSection {
+  display: flex;
+  flex-direction: column;
+}
+
+.sectionLabel {
+  font-size: 0.75rem;
+  font-family: "Ubuntu Mono", monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: color-mix(in oklch, currentColor 50%, transparent);
+  pointer-events: none;
+  padding-bottom: 0.5rem;
+}
+
+.sectionContent {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  row-gap: 0.5rem;
+  padding-left: 1rem;
+
+  > .flowNode,
+  > .box {
+    margin-left: -1rem;
+
+    & + .flowNode,
+    & + .box {
+      margin-left: 0;
+    }
+  }
+
+  + .sectionContent {
+    margin-top: 0.5rem;
+  }
+}
+
+.flowNode {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.box {
+  border: 2px solid var(--box-color, #999);
+  color: color-mix(in oklch, var(--box-color) 35%, var(--color-foreground));
+  border-radius: 6px;
+  padding: 0.5rem;
+  font-size: 0.85rem;
+  font-family: "Ubuntu Mono", monospace;
+  background: color-mix(in oklch, var(--box-color) 10%, var(--color-background));
+  white-space: nowrap;
+  transition: background 0.15s, box-shadow 0.15s;
+
+  ::selection {
+    background-color: var(--box-color);
+  }
+
+  > .box {
+    margin-top: 0.35rem;
+  }
+
+  > div > em {
+    color: var(--color-foreground);
+    font-style: normal;
+  }
+}
+
+.highlight {
+  background: color-mix(in oklch, var(--box-color) 40%, var(--color-background));
+  box-shadow: 0 0 8px 3px oklch(from var(--box-color) l c h / 50%);
+}
+
+.arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.arrowH {
+  width: 30px;
+  height: 20px;
+}
+
+.arrowV {
+  width: 20px;
+  height: 30px;
+  display: none;
+}
+
+.nesting {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+}
+
+.params {
+  list-style: none;
+
+  > li {
+    font-size: 0.9rem;
+    font-family: "Ubuntu Mono", monospace;
+    line-height: 1.5;
+  }
+}
+
+.paramNote {
+  font-size: 0.75rem;
+  color: color-mix(in oklch, currentColor 50%, transparent);
+  margin-left: 0.5rem;
+}

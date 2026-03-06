@@ -1,0 +1,25 @@
+@use "app/styles/colors" as colors;
+
+@each $name, $_ in colors.$colors {
+  .#{$name} {
+    color: var(--color-#{$name});
+  }
+  .#{$name}Alt {
+    color: var(--color-#{$name}-alt);
+  }
+  .#{$name}Light {
+    color: var(--color-#{$name}-light);
+  }
+  .#{$name}Dark {
+    color: var(--color-#{$name}-dark);
+  }
+  .#{$name}Gradient {
+    background-clip: text;
+    color: transparent;
+    background-image: linear-gradient(
+      to right,
+      var(--color-#{$name}-dark),
+      var(--color-#{$name}-light)
+    );
+  }
+}

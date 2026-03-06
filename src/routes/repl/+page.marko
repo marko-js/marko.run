@@ -1,95 +1,29 @@
-import { parseFileTree, buildFileTree, printFileTree } from "./utils/file-tree";
-import { buildRoutes } from "./utils/routes";
-static const defaultFileTree = `$name/
-  &foo+middleware.ts
-  +middleware.ts
-  +page.marko
-  &foo._+page.marko`;
+import { parseFileTree, printFileTree } from "./util/file-tree";
+import { buildRoutes, type RouteFile } from "./util/routes";
+import { buildColorMap } from "./util/file-color";
 
-let/source=defaultFileTree
+hash-data/source=`foo/
+  +page.marko
+  +middleware.ts
+  +layout.marko
+  bar/
+    +middleware.ts
+    +page.marko
+    +layout.marko
++layout.marko`
 let/fileTree=parseFileTree(source) valueChange(v) {
   source = printFileTree(v);
 }
+let/highlightedFile=null as RouteFile | null
+const/routes=buildRoutes(fileTree.dir)
+const/colors=buildColorMap(routes.files)
 
-main
-  section.input-pane
-    h2 -- Input
-    textarea value:=source rows=20 cols=100 placeholder=defaultFileTree
-    div
-      button
-        ,title="Pretty print"
-        ,onClick() {
-          fileTree = fileTree;
-        }
-        -- 🪄
-      button
-        ,title="Import routes"
-        ,onClick() {
-          $file().click();
-        }
-        -- 📥
-      input/$file
-        ,type="file"
-        ,webkitdirectory
-        ,multiple
-        ,hidden
-        ,onChange() {
-          const el = $file();
-          fileTree = buildFileTree(
-            el.files
-              ? Array.from(el.files).map((file) => file.webkitRelativePath)
-              : [],
-          );
-          el.value = "";
-        }
-
-    if=(fileTree.errors.length)
-      aside.errors
-        h3 -- Errors
-        ul
-          for|{ message, loc }| of=fileTree.errors
-            li -- ${message} at (${loc.line + 1}:${loc.column + 1})
-
-  section.output-pane
-    let/output="routes"
-    h2 -- Ouput
-    select value:=output
-      option value="files" -- Files
-      option value="routes" -- Routes
-
-    if=output === "files"
-      pre
-        code -- ${JSON.stringify(fileTree.dir, null, 2)}
-    else-if=output === "routes"
-      const/{ routes, errors }=buildRoutes(fileTree.dir)
-
-      ul
-        for|error| of=errors
-          li -- ${error.message}
-      for|route| of=routes
-        div
-          h3 -- ${route.path.key}
-          dl
-            dt -- Page
-            dd -- ${route.page?.filePath || "-"}
-
-            dt -- Handler
-            dd -- ${route.handler?.filePath || "-"}
-
-            dt -- Layouts
-            dd --
-              ${route.layouts.map((file) => file.filePath).join(" --> ") || "-"}
-
-            dt -- middlewares
-            dd --
-              ${route.middlewares.map((file) => file.filePath).join(" --> ") ||
-              "-"}
-
-            dt -- metas
-            dd --
-              ${route.metas.map((file) => file.filePath).join(" --> ") ||
-              "-"}
-            
-            dt -- partials
-              for|name, files| in=route.partials
-                dd -- ${name}:  ${files.map((file) => file.filePath).join(" --> ")}
+split-panes
+  @first
+    editor:=source
+  @second
+    results
+      ,routes=routes.routes
+      ,errors=[...fileTree.errors, ...routes.errors]
+      ,colors=colors
+      ,highlightedFile:=highlightedFile

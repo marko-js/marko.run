@@ -1,0 +1,42 @@
+client import { EditorView } from "@codemirror/view";
+client import extensions, { update } from "app/util/codemirror";
+import * as styles from "./editor.styles.module.scss";
+export interface Input {
+  value: string;
+  valueChange: (value: string) => void;
+}
+
+div.shiki/$editor id=styles.editor
+
+lifecycle<{ editor?: EditorView; change?: boolean; set(v: string): void }>
+  ,set(content) {
+    this.change = content !== input.value;
+    if (this.change) {
+      input.valueChange(content);
+    }
+  }
+  ,onMount() {
+    this.change = false;
+    this.editor = new EditorView({
+      doc: input.value,
+      parent: $editor(),
+      extensions: [
+        EditorView.updateListener.of((update) => {
+          if (update.docChanged) {
+            this.set(update.state.doc.toString());
+          }
+        }),
+        ...extensions,
+      ],
+    });
+  }
+  ,onUpdate() {
+    if (this.change) {
+      this.change = false;
+    } else {
+      update(this.editor!, input.value);
+    }
+  }
+  ,onDestroy() {
+    this.editor!.destroy();
+  }

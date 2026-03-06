@@ -1,4 +1,4 @@
-import { createLoc, ParseError } from "./parse";
+import { createLoc, type ParseError } from "./parse";
 
 interface FlatRoute {
   paths: Path[];
@@ -8,6 +8,7 @@ interface FlatRoute {
 export interface Path {
   key: string;
   segments: PathSegment[];
+  params: PathParam[] | undefined;
 }
 
 export interface PathSegment {
@@ -17,6 +18,11 @@ export interface PathSegment {
   raw: string;
 }
 
+export interface PathParam {
+  type: "$" | "$$",
+  name: string,
+  offset: number,
+}
 interface PathJoinError {
   message: string;
   left: PathSegment;
@@ -106,10 +112,7 @@ export function parseFlatRoute(str: string, isBase: boolean = true): FlatRoute {
   const iter = iterator(str);
   try {
     for (const segments of parseExpression(iter, isBase)) {
-      paths.push({
-        key: getKeyPath(segments),
-        segments,
-      });
+      paths.push(getPath(segments));
     }
   } catch (err) {
     errors.push({
@@ -432,10 +435,30 @@ export function getFullPath(segments: PathSegment[]): string {
   return "/" + segments.map((segment) => segment.raw).join("/");
 }
 
+export function getParams(segements: PathSegment[]): PathParam[] | undefined {
+  let params: PathParam[] | undefined;
+  let offset = 0;
+  for (const segement of segements) {
+    if (segement.dynamic) {
+      params ||= [];
+      params.push({
+        type: segement.dynamic,
+        name: segement.name,
+        offset
+      })
+      offset = 0;
+    } else if (!segement.prefix) {
+      offset += segement.name.length;
+    }
+  }
+  return params;
+}
+
 export function getPath(segments: PathSegment[]): Path {
   return {
     key: getKeyPath(segments),
     segments,
+    params: getParams(segments),
   };
 }
 

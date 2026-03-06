@@ -1,0 +1,184 @@
+@use "app/styles/colors" as colors;
+@use "app/styles/select/select.scss";
+@import "@fontsource/ubuntu/300.css";
+@import "@fontsource/ubuntu/400.css";
+@import "@fontsource/ubuntu/500.css";
+@import "@fontsource/ubuntu/700.css";
+@import "@fontsource/ubuntu-mono/400.css";
+
+@include colors.init;
+
+:root {
+  --root-min-gap: 1rem;
+  --root-max-width: 80rem;
+  --root-gap: calc(
+    max(var(--root-min-gap), (100dvw - var(--root-max-width)) / 2)
+  );
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  position: relative;
+  font-weight: 500;
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: 3rem;
+  margin-top: -0.75rem;
+  @media (min-width: 90rem) {
+    font-size: 3.75rem;
+    margin-top: -1rem;
+  }
+}
+
+h2 {
+  font-size: 2rem;
+  @media (min-width: 90rem) {
+    font-size: 2.7rem;
+  }
+}
+
+h3 {
+  font-size: 1.5rem;
+  @media (min-width: 90rem) {
+    font-size: 1.7rem;
+  }
+}
+
+h4 {
+  font-size: 1.25rem;
+}
+
+h5 {
+  font-size: 1.1rem;
+}
+
+p {
+  line-height: 1.6;
+  overflow-wrap: break-word;
+  text-wrap: pretty;
+}
+
+::selection {
+  color: var(--section-color-dim-alt, var(--color-red-dim-alt));
+  background-color: var(--section-color-alt, var(--color-red-alt));
+  -webkit-text-fill-color: var(
+    --section-color-dim-alt,
+    var(--color-red-dim-alt)
+  );
+}
+
+body {
+  touch-action: manipulation;
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  -webkit-font-smoothing: antialiased;
+  font-family: Ubuntu, sans-serif;
+  margin: 0;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  padding: 0 var(--root-gap);
+  min-height: 100dvh;
+}
+
+input,
+textarea,
+button {
+  font-family: inherit;
+}
+
+a {
+  color: var(--section-color);
+  text-decoration-thickness: 1px;
+  text-decoration-color: var(--section-color);
+  text-decoration-line: underline;
+  text-underline-offset: 0.2lh;
+  text-decoration-skip-ink: none;
+  &:has(code) {
+    line-height: 1.8;
+  }
+  &:hover {
+    @media (pointer: fine) {
+      text-decoration-thickness: 2px;
+    }
+  }
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h5 {
+  a {
+    text-decoration-line: none;
+  }
+}
+
+pre {
+  padding: 0.25rem 1rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  border-left: 4px solid var(--section-color-dim);
+  scrollbar-width: thin;
+  scrollbar-color: var(--section-color-dim) var(--color-background);
+}
+
+code {
+  font-family: "Ubuntu Mono", monospace;
+  line-height: 1.5;
+  text-wrap: nowrap;
+
+  :not(pre) > & {
+    color: var(--section-color);
+    background-color: var(--section-color-alt-dim);
+    border-radius: 0.5lh;
+    padding: 0.2rem 0;
+    line-height: 1.8;
+
+    &::before,
+    &::after {
+      content: "\00a0";
+    }
+  }
+}
+
+main {
+  display: flex;
+  gap: 2.5rem;
+  flex: 1 0 auto;
+  flex-direction: column;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.shiki,
+.shiki span {
+  -webkit-text-size-adjust: 100%;
+  color: var(--shiki-light);
+  .code-block--reverse &,
+  .code-block--dark & {
+    color: var(--shiki-dark);
+  }
+  @media (prefers-color-scheme: dark) {
+    color: var(--shiki-dark);
+    .code-block--reverse &,
+    .code-block--light & {
+      color: var(--shiki-light);
+    }
+  }
+}

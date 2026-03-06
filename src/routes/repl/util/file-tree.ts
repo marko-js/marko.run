@@ -1,4 +1,4 @@
-import { Loc, ParseError, createLoc } from "./parse";
+import { type Loc, type ParseError, createLoc } from "./parse";
 
 interface NodeBase {
   name: string;

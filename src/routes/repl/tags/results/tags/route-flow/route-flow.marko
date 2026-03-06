@@ -1,0 +1,60 @@
+import * as styles from "./route-flow.styles.module.scss";
+import type { Route, RouteFile } from "app/routes/repl/util/routes";
+export interface Input {
+  route: Route;
+  colors: Map<RouteFile, string>;
+  highlightedFile: RouteFile | null;
+  highlightedFileChange: (file: RouteFile | null) => void;
+}
+
+const/{ route, ...rest }=input
+
+div class=styles.flow
+  if=(route.path.params)
+    div class=[styles.flowSection]
+      label class=styles.sectionLabel -- Params
+      div class=[styles.sectionContent]
+        ul class=styles.params
+          for|param| of=route.path.params
+            li
+              span -- ${param.name}
+              if=param.type === "$$"
+                span class=styles.paramNote -- (catch-all)
+
+  div class=[styles.flowSection]
+    label class=styles.sectionLabel -- Request
+    div class=[styles.sectionContent]
+      for|file, index| of=route.middlewares
+        div class=styles.flowNode
+          file ...rest file=file
+          if=(
+            route.page || route.handler || index < route.middlewares.length - 1
+          )
+            arrow
+
+      if=route.handler
+        div class=styles.flowNode
+          file ...rest file=route.handler
+          if=route.page
+            arrow
+
+      if=route.page
+        layout-file ...rest layouts=route.layouts page=route.page depth=0
+
+  if=(route.metas.length)
+    div class=[styles.flowSection]
+      label class=styles.sectionLabel -- Meta
+      div class=[styles.sectionContent]
+        for|file, index| of=route.metas
+          div class=styles.flowNode
+            file ...rest file=file
+            if=(index < route.metas.length - 1)
+              arrow
+
+  if=route.partials.length
+    div class=[styles.flowSection]
+      label class=styles.sectionLabel -- Partials
+      for|file| of=route.partials
+        div class=[styles.sectionContent]
+          div class=styles.flowNode
+            file ...rest file=file

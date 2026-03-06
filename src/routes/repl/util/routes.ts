@@ -9,17 +9,23 @@ import {
 } from "./flat-routes";
 import { createLoc, type ParseError } from "./parse";
 
-interface Route {
+export interface BuildRoutesResult {
+  routes: Route[],
+  files: RouteFile[],
+  errors: ParseError[]
+}
+
+export interface Route {
   path: Path;
   page?: RouteFile;
   handler?: RouteFile;
   layouts: RouteFile[];
   middlewares: RouteFile[];
   metas: RouteFile[];
-  partials: Record<string, RouteFile[]>;
+  partials: RouteFile[];
 }
 
-type RouteFileType =
+export type RouteFileType =
   | "page"
   | "layout"
   | "handler"
@@ -27,7 +33,7 @@ type RouteFileType =
   | "meta"
   | "partial";
 
-interface RouteFile {
+export interface RouteFile {
   match: RouteFileMatch;
   name: string;
   dirPath: string;
@@ -41,7 +47,7 @@ interface RouteExtra {
 
 type DirNodeLike = Pick<DirNode, "name" | "dir">;
 
-interface RouteFileMatch {
+export interface RouteFileMatch {
   type: RouteFileType;
   name: string;
   path: string;
@@ -57,14 +63,14 @@ interface VDir {
   route?: Route;
 }
 
-export function buildRoutes(root: FileTreeNode[]) {
+export function buildRoutes(root: FileTreeNode[]): BuildRoutesResult {
   const routes = new Map<string, Route>();
   const errors: ParseError[] = [];
   const vTree: VDir = { parent: null, prefix: "" };
   const files = new Set<RouteFile>();
   const unusedFiles = new Set<RouteFile>();
   const partialNames = new Set<string>();
-  let dirPath = "";
+  let dirPath = "/";
   let paths: PathSegment[][] | undefined;
 
   function traverse(dir: DirNodeLike) {
@@ -79,12 +85,7 @@ export function buildRoutes(root: FileTreeNode[]) {
       return;
     }
 
-    if (dir.name) {
-      if (!dirPath.endsWith("/")) {
-        dirPath += "/";
-      }
-      dirPath += dir.name;
-    }
+    dirPath = joinPath(dirPath, dir.name);
     paths = flatRoutes.paths.map((path) => path.segments);
     if (prevPaths) {
       try {
@@ -111,7 +112,7 @@ export function buildRoutes(root: FileTreeNode[]) {
           match,
           name: entry.name,
           dirPath,
-          filePath: `${dirPath}/${entry.name}`,
+          filePath: joinPath(dirPath, entry.name),
         };
         let filePaths = paths;
 
@@ -166,7 +167,7 @@ export function buildRoutes(root: FileTreeNode[]) {
                 layouts: [],
                 middlewares: [],
                 metas: [],
-                partials: {},
+                partials: [],
               }),
               { vDir, establishers: [routeFile] },
             );
@@ -190,10 +191,11 @@ export function buildRoutes(root: FileTreeNode[]) {
         middleware && route.middlewares.push(middleware);
 
         for (const name of partialNames) {
-          const partial = getHeritableFile(dirPath, sources, name);
-          if (partial) {
-            (route.partials[name] ||= []).push(partial);
-            files.add(partial);
+          if (!route.partials.find(file => file.match.name === name)) {
+            const partial = getHeritableFile(dirPath, sources, name);
+            if (partial) {
+              route.partials.push(partial);
+            }
           }
         }
 
@@ -207,7 +209,11 @@ export function buildRoutes(root: FileTreeNode[]) {
       if (routeFile) {
         const existing = routes.get(route.path.key);
         if (!existing || isOverrideRoute(existing, route)) {
-          route.layouts.reverse();
+          if (route.page) {
+            route.layouts.reverse();
+          } else {
+            route.layouts.length = 0;
+          }
           route.middlewares.reverse();
           route.metas.reverse();
           routes.set(route.path.key, route);
@@ -290,6 +296,10 @@ function matchRouteFile(file: string): RouteFileMatch | undefined {
   }
 }
 
+function joinPath(base: string, path: string) {
+  return path ? base.endsWith("/") ? base + path : base + "/" + path : base
+}
+
 function getVDir(root: VDir, segements: PathSegment[]) {
   let cur = root;
   for (const segement of segements) {
@@ -352,6 +362,7 @@ function* routeFileIterator(route: Route) {
   yield* route.metas;
   yield* route.layouts;
   yield* route.middlewares;
+  yield* route.partials;
 }
 
 function compareRoutes(a: Route, b: Route) {
