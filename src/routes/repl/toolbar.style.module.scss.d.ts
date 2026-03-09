@@ -9,9 +9,15 @@
 declare const toolbar: string;
 declare const icon: string;
 declare const select: string;
+declare const editorPane: string;
+declare const legend: string;
+declare const legendList: string;
 
 export {
 	toolbar,
 	icon,
-	select
+	select,
+	editorPane,
+	legend,
+	legendList
 };

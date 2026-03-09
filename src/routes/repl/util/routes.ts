@@ -10,9 +10,9 @@ import {
 import { createLoc, type Loc, type ParseError } from "./parse";
 
 export interface BuildRoutesResult {
-  routes: Route[],
-  files: RouteFile[],
-  errors: ParseError[]
+  routes: Route[];
+  files: RouteFile[];
+  errors: ParseError[];
 }
 
 export interface Route {
@@ -34,6 +34,7 @@ export type RouteFileType =
   | "partial";
 
 export interface RouteFile {
+  id: string;
   match: RouteFileMatch;
   name: string;
   dirPath: string;
@@ -57,6 +58,7 @@ export interface RouteFileMatch {
 }
 
 interface VDir {
+  depth: number;
   prefix: PathSegment["prefix"];
   parent: VDir | null;
   files?: Map<string, RouteFile>;
@@ -67,18 +69,17 @@ interface VDir {
 export function buildRoutes(root: FileTreeNode[]): BuildRoutesResult {
   const routes = new Map<string, Route>();
   const errors: ParseError[] = [];
-  const vTree: VDir = { parent: null, prefix: "" };
+  const vTree: VDir = { depth: 0, parent: null, prefix: "" };
   const files = new Set<RouteFile>();
   const unusedFiles = new Set<RouteFile>();
   const partialNames = new Set<string>();
+  let nextId = 0;
   let dirPath = "/";
   let paths: PathSegment[][] | undefined;
 
   function traverse(dir: DirNodeLike) {
     const routeExtra = new Map<Route, RouteExtra>();
     const dirNodes: DirNode[] = [];
-    const prevDirPath = dirPath;
-    const prevPaths = paths;
     const isRoot = !dir.name;
     const flatRoutes = parseFlatRoute(dir.name, isRoot);
     if (flatRoutes.errors.length) {
@@ -86,11 +87,10 @@ export function buildRoutes(root: FileTreeNode[]): BuildRoutesResult {
       return;
     }
 
-    dirPath = joinPath(dirPath, dir.name);
-    paths = flatRoutes.paths.map((path) => path.segments);
-    if (prevPaths) {
+    const nextPaths = flatRoutes.paths.map((path) => path.segments);
+    if (paths) {
       try {
-        paths = crossJoin(prevPaths, paths);
+        paths = crossJoin(paths, nextPaths);
       } catch (err) {
         errors.push({
           message: (err as Error).message,
@@ -99,7 +99,10 @@ export function buildRoutes(root: FileTreeNode[]): BuildRoutesResult {
         });
         return;
       }
+    } else {
+      paths = nextPaths;
     }
+    dirPath = joinPath(dirPath, dir.name);
 
     for (const entry of dir.dir) {
       if (entry.dir) {
@@ -110,6 +113,7 @@ export function buildRoutes(root: FileTreeNode[]): BuildRoutesResult {
       const match = matchRouteFile(entry.name);
       if (match) {
         const routeFile: RouteFile = {
+          id: `file-${nextId++}`,
           match,
           name: entry.name,
           dirPath,
@@ -162,9 +166,9 @@ export function buildRoutes(root: FileTreeNode[]): BuildRoutesResult {
           }
           vDir.files.set(match.name, routeFile);
 
-          if (!vDir.route) {
+          if (!vDir.route || !routeExtra.has(vDir.route)) {
             routeExtra.set(
-              (vDir.route = {
+              (vDir.route ||= {
                 path: getPath(segements),
                 layouts: [],
                 middlewares: [],
@@ -178,25 +182,59 @@ export function buildRoutes(root: FileTreeNode[]): BuildRoutesResult {
       }
     }
 
-    for (const [route, { vDir, establishers }] of routeExtra) {
-      let sources = getFileSources(vDir);
+    if (dirNodes.length) {
+      const prevDirPath = dirPath;
+      const prevPaths = paths;
 
+      for (const dir of dirNodes) {
+        traverse(dir);
+        dirPath = prevDirPath;
+        paths = prevPaths;
+      }
+    }
+
+    for (const [route, { vDir, establishers }] of routeExtra) {
+      if (route.page || route.handler) {
+        continue;
+      }
+
+      let sources = getFileSources(vDir);
+      const seen = new Set<RouteFile>();
+      const page = getHeritableFile(dirPath, sources, "page");
+      const handler = getHeritableFile(dirPath, sources, "handler");
       const meta = getHeritableFile(dirPath, sources, "meta");
-      route.page = getHeritableFile(dirPath, sources, "page");
-      route.handler = getHeritableFile(dirPath, sources, "handler");
-      meta && route.metas.push(meta);
+
+      if (page) {
+        route.page = page;
+        seen.add(page);
+      }
+      if (handler) {
+        route.handler = handler;
+        seen.add(handler);
+      }
+      if (meta) {
+        route.metas.push(meta);
+        seen.add(meta);
+      }
 
       while (true) {
         const layout = getHeritableFile(dirPath, sources, "layout");
         const middleware = getHeritableFile(dirPath, sources, "middleware");
-        layout && route.layouts.push(layout);
-        middleware && route.middlewares.push(middleware);
+        if (layout && !seen.has(layout)) {
+          route.layouts.push(layout);
+          seen.add(layout);
+        }
+        if (middleware && !seen.has(middleware)) {
+          route.middlewares.push(middleware);
+          seen.add(middleware);
+        }
 
         for (const name of partialNames) {
-          if (!route.partials.find(file => file.match.name === name)) {
+          if (!route.partials.find((file) => file.match.name === name)) {
             const partial = getHeritableFile(dirPath, sources, name);
-            if (partial) {
+            if (partial && !seen.has(partial)) {
               route.partials.push(partial);
+              seen.add(partial);
             }
           }
         }
@@ -235,25 +273,22 @@ export function buildRoutes(root: FileTreeNode[]): BuildRoutesResult {
           }
         } else if (!isOverrideRoute(route, existing)) {
           const routeEst = establishers.map((file) => file.filePath);
-          const existingEst = routeExtra
-            .get(existing)!
-            .establishers.map((file) => file.filePath);
+          const existingExtra = routeExtra.get(existing);
 
-          errors.push({
-            message: `${routeEst.join(" and ")} establishes route '${route.path.key}' already established by ${existingEst.join(" and ")}`,
-            src: routeFile.filePath,
-            loc: createLoc(0, 0),
-          });
+          if (existingExtra) {
+            const existingEst = existingExtra.establishers.map(
+              (file) => file.filePath,
+            );
+
+            errors.push({
+              message: `${routeEst.join(" and ")} establishes route '${route.path.key}' already established by ${existingEst.join(" and ")}`,
+              src: routeFile.filePath,
+              loc: createLoc(0, 0),
+            });
+          }
         }
       }
     }
-
-    for (const dir of dirNodes) {
-      traverse(dir);
-    }
-
-    dirPath = prevDirPath;
-    paths = prevPaths;
   }
 
   traverse({ name: "", dir: root });
@@ -299,7 +334,7 @@ function matchRouteFile(file: string): RouteFileMatch | undefined {
 }
 
 function joinPath(base: string, path: string) {
-  return path ? base.endsWith("/") ? base + path : base + "/" + path : base
+  return path ? (base.endsWith("/") ? base + path : base + "/" + path) : base;
 }
 
 function getVDir(root: VDir, segements: PathSegment[]) {
@@ -312,6 +347,7 @@ function getVDir(root: VDir, segements: PathSegment[]) {
       cur.dirs.set(
         name,
         (next = {
+          depth: cur.depth + 1,
           parent: cur,
           prefix: segement.prefix,
         }),

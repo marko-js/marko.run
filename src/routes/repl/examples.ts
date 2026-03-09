@@ -1,67 +1,82 @@
-export interface Example {
-  name: string;
-  source: string;
-}
-
-export const examples: Example[] = [
+export default [
   {
     name: "Basic",
     source: `foo/
-  +page.marko
-  +middleware.ts
-  +layout.marko
   bar/
+    +layout.marko
     +middleware.ts
     +page.marko
+  +layout.marko
+  +middleware.ts
+  +page.marko
++layout.marko
+`,
+  },
+  {
+    name: "Dynamic",
+    source: `users/
+  $userId/
+    posts/
+      $postId/
+        +page.marko
+      +page.marko
     +layout.marko
-+layout.marko`,
+    +page.marko
+  +page.marko
++layout.marko
+`,
   },
   {
     name: "Catch-all",
-    source: `+page.marko
+    source: `$$rest/
+  +page.marko
 +layout.marko
-$$rest/
-  +page.marko`,
++page.marko
+`,
   },
   {
-    name: "Dynamic Params",
-    source: `users/
-  +page.marko
-  $userId/
+    name: "Grouping",
+    source: `_private/
+  dashboard/
     +page.marko
-    +layout.marko
-    posts/
-      +page.marko
-      $postId/
-        +page.marko
-+layout.marko`,
-  },
-  {
-    name: "Pathless Layout",
-    source: `+layout.marko
-_auth/
+  settings/
+    +page.marko
   +layout.marko
-  login/
-    +page.marko
-  register/
-    +page.marko
-dashboard/
+  +middleware.ts
+login/
   +page.marko
-  +middleware.ts`,
+register/
+  +page.marko
++layout.marko
++page.marko
+`,
   },
   {
-    name: "Middleware",
-    source: `+layout.marko
-+middleware.ts
-api/
-  +middleware.ts
-  users/
-    +handler.ts
+    name: "API",
+    source: `api/
   posts/
+    $postId/
+      +handler.ts
     +handler.ts
-admin/
+  users/
+    $userId/
+      +handler.ts
+    +handler.ts
   +middleware.ts
-  +page.marko
-  +layout.marko`,
++layout.marko
++middleware.ts
++page.marko
+`,
+  },
+  {
+    name: "Narrowing",
+    source: `users/
+  $userId/
+    &me/
+      +page.marko
+    +layout.marko
+    +page.marko
++layout.marko
+​`,
   },
 ];

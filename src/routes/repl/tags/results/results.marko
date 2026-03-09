@@ -1,21 +1,13 @@
 import * as styles from "./results.styles.module.scss";
-import type { Route, RouteFile } from "../../util/routes";
-
-export interface ParseError {
-  message: string;
-  src: string;
-  loc: { line: number; column: number; end: number };
-}
+import type { Route } from "../../util/routes";
+import type { ParseError } from "app/routes/repl/util/parse";
 
 export interface Input {
   routes: Route[];
   errors: ParseError[];
-  colors: Map<RouteFile, string>;
-  highlightedFile: RouteFile | null;
-  highlightedFileChange: (file: RouteFile | null) => void;
 }
 
-const/{ routes, errors, highlightedFile, ...rest }=input
+const/{ routes, errors }=input
 
 div class=styles.routes
   if=errors.length
@@ -29,4 +21,4 @@ div class=styles.routes
   for|route| of=routes
     details class=styles.route open
       summary -- ${route.path.key}
-      route-flow ...rest highlightedFile:=highlightedFile route=route
+      route-flow route=route

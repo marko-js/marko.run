@@ -1,10 +1,7 @@
 import * as styles from "../route-flow.styles.module.scss";
 import type { RouteFile } from "app/routes/repl/util/routes";
 export interface Input {
-  file: RouteFile;
-  colors: Map<RouteFile, string>;
-  highlightedFile: RouteFile | null;
-  highlightedFileChange: (file: RouteFile | null) => void;
+  value: RouteFile;
   content?: Marko.Body;
 }
 static function getFilePrefix(file: RouteFile) {
@@ -18,27 +15,11 @@ static function getFileSuffix(file: RouteFile) {
   return (file.match.extra || "") + file.match.ext;
 }
 
-const/{ file, colors, highlightedFile, content }=input
+const/{ value, content }=input
 
-div
-  ,class=[styles.box, highlightedFile === file && styles.highlight]
-  ,style=`--box-color:${colors.get(file)}`
-  ,onMouseOver(e) {
-    e.stopPropagation();
-    highlightedFile = file;
-  }
-  ,onMouseOut(e) {
-    const rel = e.relatedTarget as Element | null;
-    if (
-      rel &&
-      !rel.classList.contains(styles.box) &&
-      !(e.target as Element).contains(rel)
-    ) {
-      highlightedFile = null;
-    }
-  }
+div class=["hl-box", styles.box, value.id]
   div
-    -- ${getFilePrefix(file)}
-    em -- ${file.match.name}
-    -- ${getFileSuffix(file)}
+    -- ${getFilePrefix(value)}
+    em -- ${value.match.name}
+    -- ${getFileSuffix(value)}
   ${content}

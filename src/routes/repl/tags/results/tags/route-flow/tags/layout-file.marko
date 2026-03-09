@@ -5,15 +5,12 @@ export interface Input {
   layouts: RouteFile[];
   page: RouteFile;
   depth: number;
-  colors: Map<RouteFile, string>;
-  highlightedFile: RouteFile | null;
-  highlightedFileChange: (file: RouteFile | null) => void;
 }
 
-const/{ layouts, depth, page, ...rest }=input
+const/{ layouts, depth, page }=input
 
 if=depth < layouts.length
-  file ...rest file=layouts[depth]
-    layout-file ...rest layouts=layouts depth=depth + 1 page=page
+  file=layouts[depth]
+    layout-file layouts=layouts depth=depth + 1 page=page
 else
-  file ...rest file=page
+  file=page

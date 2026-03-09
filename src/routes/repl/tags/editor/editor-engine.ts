@@ -90,6 +90,7 @@ export class EditorEngine {
   }
 
   setValue(text: string): void {
+    if (text === this.getValue()) return;
     this.suppressInput = true;
     const lines = text.split("\n");
     this.el.innerHTML = "";
@@ -104,11 +105,12 @@ export class EditorEngine {
     this.suppressInput = false;
   }
 
-  applyLineColors(lineColors: Map<number, string>): void {
+  applyLineClasses(lineClasses: Map<number, string>): void {
     const lines = getLineElements(this.el);
     for (let i = 0; i < lines.length; i++) {
-      const color = lineColors.get(i);
-      lines[i].style.color = color || "";
+      const cls = lineClasses.get(i);
+      // Remove any previously applied file/folder/unmatched classes
+      lines[i].className = cls || "";
     }
   }
 

@@ -1,49 +1,49 @@
 import type { RouteFile } from "./routes";
 
-export function buildColorMap(files: RouteFile[]) {
-  const map = new Map<RouteFile, string>();
+export function buildFileCSS(files: RouteFile[]): string {
   const len = files.length;
-  for (let i = 0; i < len; i++) {
-    map.set(files[i], `oklch(0.6 0.2 ${(360 / len) * i})`);
+  let colors = "";
+  let selectors = "";
+  let i = 0;
+  for (const file of files) {
+    colors += `.${file.id}{--h:${Math.round((360 / len) * i)};}`;
+    if (i > 0) selectors += `,`;
+    selectors += `body:has(.${file.id}:hover) .${file.id}`;
+    i++
   }
-  return map;
+
+  return `${colors}${selectors}{background: color-mix(in oklch, var(--box-color) 40%, var(--color-background));&.hl-box {box-shadow: 0 0 8px 3px oklch(from var(--box-color) l c h / 50%);}&.hl-text {color: color-mix(in oklch, var(--box-color) 35%, var(--color-foreground));}}`;
 }
 
-export function buildLineColors(
-  colors: Map<RouteFile, string>,
+export function buildLineClasses(
+  files: RouteFile[],
   source: string,
-  highlightedFile?: RouteFile | null,
 ): Map<number, string> {
-  const lineColors = new Map<number, string>();
+  const lineClasses = new Map<number, string>();
   const lines = source.split("\n");
 
-  // Assign colors for recognized route files
-  for (const [file, color] of colors) {
-    if (file.loc.line >= 0 && (!highlightedFile || file === highlightedFile)) {
-      lineColors.set(file.loc.line, color);
+  for (const file of files) {
+    if (file.loc.line >= 0) {
+      lineClasses.set(file.loc.line, "hl-text " + file.id);
     }
   }
 
-  // Assign white for folders (lines ending with /) and grey for uncolored files
   for (let i = 0; i < lines.length; i++) {
-    if (lineColors.has(i)) continue;
+    if (lineClasses.has(i)) continue;
     const trimmed = lines[i].trim();
     if (!trimmed) continue;
     if (trimmed.endsWith("/")) {
-      lineColors.set(i, "white");
+      lineClasses.set(i, "folder-line");
     } else {
-      lineColors.set(i, "grey");
+      lineClasses.set(i, "unmatched-line");
     }
   }
 
-  return lineColors;
+  return lineClasses;
 }
 
-export function fileAtLine(
-  colors: Map<RouteFile, string>,
-  line: number,
-): RouteFile | null {
-  for (const [file] of colors) {
+export function fileAtLine(files: RouteFile[], line: number): RouteFile | null {
+  for (const file of files) {
     if (file.loc.line === line) return file;
   }
   return null;

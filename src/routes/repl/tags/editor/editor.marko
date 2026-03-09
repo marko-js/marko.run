@@ -3,7 +3,7 @@ import * as styles from "./editor.styles.module.scss";
 export interface Input {
   value: string;
   valueChange: (value: string) => void;
-  lineColors: Map<number, string>;
+  lineClasses: Map<number, string>;
   onLineHover?: (line: number) => void;
 }
 
@@ -11,9 +11,11 @@ div class=styles.editor
   div/$gutter class=styles.gutter
   div/$editable
     ,class=styles.editable
-    ,contenteditable="plaintext-only"
+    ,contenteditable="true"
+    ,role="textbox"
+    ,aria-label="Source editor"
+    ,aria-multiline="true"
     ,spellcheck=false
-    ,autocorrect="off"
     ,autocapitalize="off"
     ,data-gramm="false"
 
@@ -33,7 +35,7 @@ lifecycle<{ engine?: EditorEngine; change?: boolean; set(v: string): void }>
       input.onLineHover,
     );
     this.engine.setValue(input.value);
-    this.engine.applyLineColors(input.lineColors);
+    this.engine.applyLineClasses(input.lineClasses);
   }
   ,onUpdate() {
     if (this.change) {
@@ -41,7 +43,7 @@ lifecycle<{ engine?: EditorEngine; change?: boolean; set(v: string): void }>
     } else {
       this.engine!.setValue(input.value);
     }
-    this.engine!.applyLineColors(input.lineColors);
+    this.engine!.applyLineClasses(input.lineClasses);
     this.engine!.updateFolding();
     this.engine!.highlightActiveLine();
   }

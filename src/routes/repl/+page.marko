@@ -1,51 +1,46 @@
 import { parseFileTree, printFileTree, buildFileTree } from "./util/file-tree";
 import { buildRoutes, type RouteFile } from "./util/routes";
-import { buildColorMap, buildLineColors, fileAtLine } from "./util/file-color";
+import { buildFileCSS, buildLineClasses } from "./util/file-color";
 import * as toolbar from "./toolbar.style.module.scss";
 import { faFolderOpen, faPaintBrush } from "@fortawesome/free-solid-svg-icons";
-import { examples } from "./examples";
+import examples from "./examples";
 
-hash-data/source=`foo/
-  +page.marko
-  +middleware.ts
-  +layout.marko
-  bar/
-    +middleware.ts
-    +page.marko
-    +layout.marko
-+layout.marko`
+hash-data/source=examples[0].source
 
 let/highlightedFile=null as RouteFile | null
 let/fileTree=parseFileTree(source) valueChange(v) {
   source = printFileTree(v);
 }
 const/routes=buildRoutes(fileTree.dir)
-const/colors=buildColorMap(routes.files)
-const/lineColors=buildLineColors(colors, source, highlightedFile)
+const/lineClasses=buildLineClasses(routes.files, source)
 
+html-style -- ${buildFileCSS(routes.files)}
 split-panes
   @first
     div class=toolbar.toolbar
       select/$example
         ,class=toolbar.select
-        ,value=""
+        ,aria-label="Select example"
         ,valueChange(value) {
           const example = examples[+value];
           if (example) {
-            source = example.source
+            source = example.source;
           }
         }
         option disabled selected -- Examples
         for|example, i| of=examples
           option value=i -- ${example.name}
       button
+        ,type="button"
+        ,aria-label="Pretty print source"
         ,title="Pretty print"
-        ,style="margin-left: auto"
         ,onClick() {
           fileTree = fileTree;
         }
         fa-icon=faPaintBrush
       button
+        ,type="button"
+        ,aria-label="Import routes directory"
         ,title="Import routes directory"
         ,onClick() {
           $file().click();
@@ -65,12 +60,40 @@ split-panes
           );
           el.value = "";
         }
-    editor:=source lineColors=lineColors onLineHover(line) {
-          highlightedFile = line >= 0 ? fileAtLine(colors, line) : null;
-        }
+    div class=toolbar.editorPane
+      editor:=source lineClasses=lineClasses
+      details class=toolbar.legend
+        summary -- Legend
+        ul class=toolbar.legendList
+          li
+            code title="Period" -- .
+            span -- Seperate segements
+          li
+            code title="Comma" -- ,
+            span -- Alternate route branch
+          li
+            code title="Parentheses" -- ()
+            span -- Group sub-expression
+          li
+            code title="Backtick" -- `
+            span -- Escape special characters
+          li
+            code title="Dollar" -- $
+            span -- Dynamic segment
+          li
+            code title="Dollar (double)" -- $$
+            span -- Catch-all segment
+          li
+            code title="Underscore" -- _
+            span -- Pathless segment
+          li
+            code title="Ampersand" -- &
+            span -- Narrowing segment
+          li
+            code title="Plus" -- +
+            span -- Route file prefix
+          li
+            code title="At" -- @
+            span -- Partial template prefix
   @second
-    results
-      ,routes=routes.routes
-      ,errors=[...fileTree.errors, ...routes.errors]
-      ,colors=colors
-      ,highlightedFile:=highlightedFile
+    results routes=routes.routes errors=[...fileTree.errors, ...routes.errors]

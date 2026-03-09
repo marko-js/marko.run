@@ -49,6 +49,7 @@
 }
 
 .box {
+  --box-color: oklch(0.6 0.2 var(--h));
   border: 2px solid var(--box-color, #999);
   color: color-mix(in oklch, var(--box-color) 35%, var(--color-foreground));
   border-radius: 6px;
@@ -71,11 +72,6 @@
     color: var(--color-foreground);
     font-style: normal;
   }
-}
-
-.highlight {
-  background: color-mix(in oklch, var(--box-color) 40%, var(--color-background));
-  box-shadow: 0 0 8px 3px oklch(from var(--box-color) l c h / 50%);
 }
 
 .arrow {

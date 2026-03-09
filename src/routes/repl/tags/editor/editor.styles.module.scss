@@ -18,6 +18,7 @@
   font-size: inherit;
   line-height: inherit;
   overflow: hidden;
+  margin-right: -1.75rem;
 
   :global {
     .gutter-row {
@@ -58,6 +59,9 @@
 
   & > div {
     min-height: 1.5em;
+    padding-left: 1.75rem;
+    border-radius: 0.25rem;
+    transition: background 0.15s, color 0.15s
   }
 
   &::selection,
@@ -66,8 +70,15 @@
   }
 
   :global {
+    .hl-text {
+      --box-color: oklch(0.6 0.2 var(--h));
+      color: var(--box-color);
+    }
     .active-line {
       background-color: color-mix(in srgb, var(--color-foreground) 5%, transparent);
+    }
+    .unmatched-line {
+      color: color-mix(in oklch, currentColor 50%, transparent);
     }
   }
 }

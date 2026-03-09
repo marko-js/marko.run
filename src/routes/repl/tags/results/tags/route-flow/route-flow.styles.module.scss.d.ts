@@ -12,7 +12,6 @@ declare const sectionLabel: string;
 declare const sectionContent: string;
 declare const flowNode: string;
 declare const box: string;
-declare const highlight: string;
 declare const arrow: string;
 declare const arrowH: string;
 declare const arrowV: string;
@@ -27,7 +26,6 @@ export {
 	sectionContent,
 	flowNode,
 	box,
-	highlight,
 	arrow,
 	arrowH,
 	arrowV,
