@@ -1,0 +1,16 @@
+
+import type { RouteFile } from "app/routes/repl/util/routes";
+
+export interface Input {
+  layouts: RouteFile[];
+  page: RouteFile;
+  depth: number;
+}
+
+const/{ layouts, depth, page }=input
+
+if=depth < layouts.length
+  file=layouts[depth]
+    layout-file layouts=layouts depth=depth + 1 page=page
+else
+  file=page

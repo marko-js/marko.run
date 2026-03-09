@@ -1,0 +1,39 @@
+$top: var(--stick-top);
+$size: var(--stick-size);
+$scale: var(--stick-scale);
+$pageLinksHeight: 3.5rem;
+
+@mixin init {
+  :root {
+    --stick-top: 0px;
+    --stick-size: calc(36px + 4rem);
+    --stick-scale: calc(
+      1 - tan(atan2(#{$size}, 1px)) / tan(atan2(100dvh, 1px))
+    );
+    @media (min-width: 48rem) and (min-height: 38rem) {
+      --stick-size: calc(48px + 4rem);
+    }
+  }
+}
+
+@mixin animate($name) {
+  animation: $name linear both;
+  animation-timeline: scroll(root);
+  animation-range: $top calc($top + $size);
+}
+
+@mixin supported {
+  // On large screens, exclude Safari because of a rendering bug with scaleY
+  @supports (animation-timeline: scroll()) and (not (-webkit-hyphens: none)) {
+    @media (width >= 48rem) and (height >= 38rem) {
+      @content;
+    }
+  }
+
+  // On small screens, include Safari
+  @supports (animation-timeline: scroll()) {
+    @media (width < 48rem) or (height < 38rem) {
+      @content;
+    }
+  }
+}

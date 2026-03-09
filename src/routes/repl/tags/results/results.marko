@@ -1,0 +1,24 @@
+import * as styles from "./results.styles.module.scss";
+import type { Route } from "../../util/routes";
+import type { ParseError } from "app/routes/repl/util/parse";
+
+export interface Input {
+  routes: Route[];
+  errors: ParseError[];
+}
+
+const/{ routes, errors }=input
+
+div class=styles.routes
+  if=errors.length
+    details class=[styles.route, styles.errorsSection] open
+      summary -- Errors (${errors.length})
+      ul class=styles.errorsList
+        for|error| of=errors
+          li
+            span class=styles.errorText -- ${error.src}: ${error.message}
+
+  for|route| of=routes
+    details class=styles.route open
+      summary -- ${route.path.key}
+      route-flow route=route

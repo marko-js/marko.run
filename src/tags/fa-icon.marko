@@ -1,0 +1,15 @@
+import type { IconDefinition } from "@fortawesome/free-solid-svg-icons";
+export interface Input extends Marko.Input<"svg"> {
+  value: IconDefinition;
+}
+
+const/{ value, ...svgInput }=input
+
+const/[width, height, _ligatures, _unicode, svgPathData]=value.icon
+
+svg viewBox=`0 0 ${width} ${height}` ...svgInput
+  if=Array.isArray(svgPathData)
+    for|pathData| of=svgPathData
+      path d=pathData
+  else
+    path d=svgPathData

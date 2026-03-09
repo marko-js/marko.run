@@ -1,0 +1,99 @@
+import { parseFileTree, printFileTree, buildFileTree } from "./util/file-tree";
+import { buildRoutes, type RouteFile } from "./util/routes";
+import { buildFileCSS, buildLineClasses } from "./util/file-color";
+import * as toolbar from "./toolbar.style.module.scss";
+import { faFolderOpen, faPaintBrush } from "@fortawesome/free-solid-svg-icons";
+import examples from "./examples";
+
+hash-data/source=examples[0].source
+
+let/highlightedFile=null as RouteFile | null
+let/fileTree=parseFileTree(source) valueChange(v) {
+  source = printFileTree(v);
+}
+const/routes=buildRoutes(fileTree.dir)
+const/lineClasses=buildLineClasses(routes.files, source)
+
+html-style -- ${buildFileCSS(routes.files)}
+split-panes
+  @first
+    div class=toolbar.toolbar
+      select/$example
+        ,class=toolbar.select
+        ,aria-label="Select example"
+        ,valueChange(value) {
+          const example = examples[+value];
+          if (example) {
+            source = example.source;
+          }
+        }
+        option disabled selected -- Examples
+        for|example, i| of=examples
+          option value=i -- ${example.name}
+      button
+        ,type="button"
+        ,aria-label="Pretty print source"
+        ,title="Pretty print"
+        ,onClick() {
+          fileTree = fileTree;
+        }
+        fa-icon=faPaintBrush
+      button
+        ,type="button"
+        ,aria-label="Import routes directory"
+        ,title="Import routes directory"
+        ,onClick() {
+          $file().click();
+        }
+        fa-icon=faFolderOpen
+      input/$file
+        ,type="file"
+        ,...({ webkitdirectory: true } as Record<string, unknown>)
+        ,multiple
+        ,hidden
+        ,onChange() {
+          const el = $file();
+          fileTree = buildFileTree(
+            el.files
+              ? Array.from(el.files).map((file) => file.webkitRelativePath)
+              : [],
+          );
+          el.value = "";
+        }
+    div class=toolbar.editorPane
+      editor:=source lineClasses=lineClasses
+      details class=toolbar.legend
+        summary -- Legend
+        ul class=toolbar.legendList
+          li
+            code title="Period" -- .
+            span -- Seperate segements
+          li
+            code title="Comma" -- ,
+            span -- Alternate route branch
+          li
+            code title="Parentheses" -- ()
+            span -- Group sub-expression
+          li
+            code title="Backtick" -- `
+            span -- Escape special characters
+          li
+            code title="Dollar" -- $
+            span -- Dynamic segment
+          li
+            code title="Dollar (double)" -- $$
+            span -- Catch-all segment
+          li
+            code title="Underscore" -- _
+            span -- Pathless segment
+          li
+            code title="Ampersand" -- &
+            span -- Narrowing segment
+          li
+            code title="Plus" -- +
+            span -- Route file prefix
+          li
+            code title="At" -- @
+            span -- Partial template prefix
+  @second
+    results routes=routes.routes errors=[...fileTree.errors, ...routes.errors]

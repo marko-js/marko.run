@@ -1,0 +1,25 @@
+import * as styles from "../route-flow.styles.module.scss";
+import type { RouteFile } from "app/routes/repl/util/routes";
+export interface Input {
+  value: RouteFile;
+  content?: Marko.Body;
+}
+static function getFilePrefix(file: RouteFile) {
+  return (
+    (file.dirPath === "/" ? "" : file.dirPath.slice(1) + "/") +
+    (file.match.path || "") +
+    (file.match.type === file.match.name ? "+" : "@")
+  );
+}
+static function getFileSuffix(file: RouteFile) {
+  return (file.match.extra || "") + file.match.ext;
+}
+
+const/{ value, content }=input
+
+div class=["hl-box", styles.box, value.id]
+  div
+    -- ${getFilePrefix(value)}
+    em -- ${value.match.name}
+    -- ${getFileSuffix(value)}
+  ${content}

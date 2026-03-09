@@ -1,0 +1,84 @@
+.editor {
+  overflow: hidden;
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  font-size: 1rem;
+  font-family: "Ubuntu Mono", monospace;
+  line-height: 1.5;
+}
+
+.gutter {
+  user-select: none;
+  padding: 0 0.25rem 0 0.5rem;
+  text-align: right;
+  color: #858585;
+  background-color: var(--color-background);
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  overflow: hidden;
+  margin-right: -1.75rem;
+
+  :global {
+    .gutter-row {
+      height: 1.5em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 1em;
+    }
+
+    .fold-marker {
+      cursor: pointer;
+      display: inline-block;
+      rotate: 0deg;
+      transition: rotate 0.15s ease;
+      font-size: 0.9em;
+      line-height: 1;
+    }
+
+    .fold-open {
+      rotate: 90deg;
+    }
+  }
+}
+
+.editable {
+  flex: 1;
+  overflow: auto;
+  outline: none;
+  white-space: pre;
+  caret-color: var(--color-foreground);
+  color: var(--color-foreground);
+  background-color: var(--color-background);
+  padding: 0 0.5rem;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+
+  & > div {
+    min-height: 1.5em;
+    padding-left: 1.75rem;
+    border-radius: 0.25rem;
+    transition: background 0.15s, color 0.15s
+  }
+
+  &::selection,
+  & ::selection {
+    background: var(--color-blue-dim);
+  }
+
+  :global {
+    .hl-text {
+      --box-color: oklch(0.6 0.2 var(--h));
+      color: var(--box-color);
+    }
+    .active-line {
+      background-color: color-mix(in srgb, var(--color-foreground) 5%, transparent);
+    }
+    .unmatched-line {
+      color: color-mix(in oklch, currentColor 50%, transparent);
+    }
+  }
+}
